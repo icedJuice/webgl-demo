@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<script src="js/webgl-utils.js" type="text/javascript" charset="utf-8"></script>
+	</head>
+	<body>
+		
+		<canvas id="canvas" width="800" height="600"></canvas>
+		
+		
+		<script id="2d-vertex-shader" type="no-script">
+			// 一个属性变量，将会从缓冲中获取数据
+			attribute vec4 a_position;
+			// 所有着色器都有一个main方法
+			void main() {
+				// gl_Position 是一个顶点着色器主要设置的变量
+				gl_Position = a_position;
+			}
+			
+		</script>
+		
+		<script id="2d-fragment-shader" type="no-script">
+			// 片断着色器没有默认精度，所以我们需要设置一个精度
+			// mediump是一个不错的默认值，代表“medium precision”（中等精度）
+			precision mediump float;
+			
+			void main() {
+				// gl_FragColor 是一个片段着色器主要设置的变量
+				gl_FragColor = vec4(1, 0, 0.5, 1) // 返回“瑞迪施紫色”
+			}
+		</script>
+		
+		<script type="text/javascript">
+			
+			
+			// 创建着色器方法，输入参数：渲染上下文，着色器类型，数据源
+			function createShader(gl, type, source) {
+			  var shader = gl.createShader(type);
+			  gl.shaderSource(shader, source);
+			  gl.compileShader(shader);
+			  var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+			  if (success) {
+				return shader;
+			  }
+
+			  console.log(gl.getShaderInfoLog(shader));
+			  gl.deleteShader(shader);
+			}
+			function createProgram(gl, vertexShader, fragmentShader) {
+			  var program = gl.createProgram();
+			  gl.attachShader(program, vertexShader);
+			  gl.attachShader(program, fragmentShader);
+			  gl.linkProgram(program);
+			  var success = gl.getProgramParameter(program, gl.LINK_STATUS);
+			  if (success) {
+				return program;
+			  }
+
+			  console.log(gl.getProgramInfoLog(program));
+			  gl.deleteProgram(program);
+			}
+			
+			function main() {
+			  // Get A WebGL context
+			  var canvas = document.getElementById("canvas");
+			  var gl = canvas.getContext("webgl");
+			  if (!gl) {
+				return;
+			  }
+
+			  // Get the strings for our GLSL shaders
+			  var vertexShaderSource = document.getElementById("2d-vertex-shader").text;
+			  var fragmentShaderSource = document.getElementById("2d-fragment-shader").text;
+
+			  // create GLSL shaders, upload the GLSL source, compile the shaders
+			  var vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+			  var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+
+			  // Link the two shaders into a program
+			  var program = createProgram(gl, vertexShader, fragmentShader);
+
+			  // look up where the vertex data needs to go.
+			  var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+
+			  // Create a buffer and put three 2d clip space points in it
+			  var positionBuffer = gl.createBuffer();
+
+			  // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
+			  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+			  var positions = [
+				0, 0,
+				0, 0.5,
+				0.7, 0,
+			  ];
+			  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+			  // code above this line is initialization code.
+			  // code below this line is rendering code.
+
+			  webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+
+			  // Tell WebGL how to convert from clip space to pixels
+			  gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+			  // Clear the canvas
+			  gl.clearColor(0, 0, 0, 0);
+			  gl.clear(gl.COLOR_BUFFER_BIT);
+
+			  // Tell it to use our program (pair of shaders)
+			  gl.useProgram(program);
+
+			  // Turn on the attribute
+			  gl.enableVertexAttribArray(positionAttributeLocation);
+
+			  // Bind the position buffer.
+			  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+			  // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+			  var size = 2;          // 2 components per iteration
+			  var type = gl.FLOAT;   // the data is 32bit floats
+			  var normalize = false; // don't normalize the data
+			  var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+			  var offset = 0;        // start at the beginning of the buffer
+			  gl.vertexAttribPointer(
+				  positionAttributeLocation, size, type, normalize, stride, offset);
+
+			  // draw
+			  var primitiveType = gl.TRIANGLES;
+			  var offset = 0;
+			  var count = 3;
+			  gl.drawArrays(primitiveType, offset, count);
+			}
+
+			main();
+// 			var vertexShaderSource = document.getElementById("2d-vertex-shader").text;
+// 			var fragmentShaderSource = document.getElementById("2d-fragment-shader").text;
+// 			
+// 			var vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+// 			var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+// 			
+// 			// 将两个着色器连接到一个program(着色程序)
+// 			function createProgram(gl, vertexShader, fragmentShader) {
+// 				var program = gl.createProgram();
+// 				gl.attachShader(program, vertexShader);
+// 				gl.attachShader(program, fragmentShader);
+// 				gl.linkProgram(program);
+// 				
+// 				var success = gl.getProgramParamenter(program, gl.LINK_STATUS);
+// 				if (success) {
+// 					return program;
+// 				}
+// 				
+// 				console.log(gl.getProgramInfoLog(program));
+// 				gl.deleteProgram(program);
+// 			}
+// 			
+// 			var program = createProgram(gl, vertexShader, fragmentShader);
+// 			// GLSL着色程序的唯一输入是一个属性值a_position
+// 			// 从刚才创建的GLSL着色程序中找到这个属性值所在的位置
+// 			var positionAttributeLocation = gl.getAttribLocation(program, 'a_position');
+// 			
+// 			//属性值从缓冲中获取数据，所以我们创建一个缓冲
+// 			var positionBuffer = gl.createBuffer();
+// 			// 首先绑定一个数据源到绑定点，然后可以引用绑定点指向该数据源。 所以让我们来绑定位置信息缓冲（下面的绑定点就是ARRAY_BUFFER）
+// 			gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+// 			
+// 			// 通过绑定点向缓冲区存放数据
+// 			// 三个二维点坐标
+// 			var positions = [
+// 				0, 0,
+// 				0, 0.5,
+// 				0.7, 0,
+// 			]
+// 			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+// 			
+// 			webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+// 			gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+// 			
+// 			// 清空画布
+// 			gl.clearColor(0, 0, 0, 0);
+// 			gl.clear(gl.COLOR_BUFFER_BIT);
+// 			
+// 			// 告诉它用我们之前写好的着色程序（一个着色器对）
+// 			gl.useProgram(program);
+// 			// 接下来我们需要告诉WebGL怎么从我们之前准备的缓冲中获取数据给着色器中的属性。 首先我们需要启用对应属性
+// 			gl.enableVertexAttribArray(positionAttributeLocation);
+// 			
+// 			//然后指定从缓冲中读取数据的方式
+// 			gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+// 			// 告诉属性怎么从positionBuffer中读取数据 (ARRAY_BUFFER)
+// 			var size = 2;          // 每次迭代运行提取两个单位数据
+// 			var type = gl.FLOAT;   // 每个单位的数据类型是32位浮点型
+// 			var normalize = false; // 不需要归一化数据
+// 			var stride = 0;        // 0 = 移动单位数量 * 每个单位占用内存（sizeof(type)）
+// 								   // 每次迭代运行运动多少内存到下一个数据开始点
+// 			var offset = 0         // 从缓冲起始位置开始读取
+// 			// gl.vertexAttribPointer是将属性绑定到当前的ARRAY_BUFFER
+// 			gl.vertexAttribPointer(positionAttributeLocation, size, type, normalize, stride, offset);
+// 			// 图元类型 为 三角形
+// 			var primitiveType = gl.TRIANGLES;
+// 			var offset = 0;
+// 			var count = 3;
+// 			gl.drawArrays(primitiveType, offset, count);
+// 			
+			
+		</script>
+		
+	</body>
+</html>
