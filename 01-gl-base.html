@@ -11,25 +11,34 @@
 		
 		
 		<script id="2d-vertex-shader" type="no-script">
-			// 一个属性变量，将会从缓冲中获取数据
-			attribute vec4 a_position;
-			// 所有着色器都有一个main方法
-			void main() {
-				// gl_Position 是一个顶点着色器主要设置的变量
-				gl_Position = a_position;
-			}
+		  // an attribute will receive data from a buffer
+		  attribute vec4 a_position;
+
+		  // all shaders have a main function
+		  void main() {
+
+			// gl_Position is a special variable a vertex shader
+			// is responsible for setting
+			gl_Position = a_position;
+		  }
+
 			
 		</script>
 		
 		<script id="2d-fragment-shader" type="no-script">
-			// 片断着色器没有默认精度，所以我们需要设置一个精度
-			// mediump是一个不错的默认值，代表“medium precision”（中等精度）
-			precision mediump float;
 			
-			void main() {
-				// gl_FragColor 是一个片段着色器主要设置的变量
-				gl_FragColor = vec4(1, 0, 0.5, 1) // 返回“瑞迪施紫色”
-			}
+				
+		  // fragment shaders don't have a default precision so we need
+		  // to pick one. mediump is a good default
+		  precision mediump float;
+
+		  void main() {
+			// gl_FragColor is a special variable a fragment shader
+			// is responsible for setting
+			gl_FragColor = vec4(1, 0, 0.5, 1); // return redish-purple
+		  }
+
+
 		</script>
 		
 		<script type="text/javascript">
